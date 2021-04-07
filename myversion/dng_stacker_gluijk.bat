@@ -76,11 +76,11 @@ echo convert !imCommand! -evaluate-sequence mean temp.tif >> dng_stacker.log
 convert !imCommand! -evaluate-sequence mean temp.tif >> dng_stacker.log 2>>&1
 if errorlevel 1 goto err
 
-echo.
 echo Bayer composite created in temp.tif, now you can edit it.
 echo.
 pause
 
+echo.
 echo Creating DNG based on the metadata from !firstFile!.dng using exiftool
 echo Creating DNG based on the metadata from !firstFile!.dng >> dng_stacker.log
 
@@ -119,8 +119,6 @@ if errorlevel 1 goto err
 
 del temp.xmp
 
-echo.
-
 set resultDNG=!firstFile!-stack!numberOfFiles!
 echo Writing clean DNG to !resultDNG!.dng using dng_validate
 echo Writing clean DNG to !resultDNG!.dng >> dng_stacker.log
@@ -129,7 +127,6 @@ dng_validate.exe -dng !resultDNG! temp.dng >> dng_stacker.log 2>>&1
 del temp.dng
 del *.tif
 
-echo.
 echo Fully done. The new stacked DNG is called !resultDNG!.dng.
 echo.
 pause
