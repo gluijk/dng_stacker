@@ -81,7 +81,6 @@ if (max(hdr)<1) print(paste0("Output data will be ETTR'ed by: +",
 # writeTIFF(hdr^(1/2.2), "hdr.tif", bits.per.sample=16, compression="none")
 writeTIFF(hdr/max(hdr), "hdr.tif", bits.per.sample=16, compression="none")
 
-
 # Fusion map and RAW data files contributions
 writeTIFF((mapafusion-1)/(N-1), "mapafusion.tif",
           bits.per.sample=8, compression="LZW")
