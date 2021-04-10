@@ -76,8 +76,10 @@ for (i in 2:N) {
     hdr[indices]=img[[i]][indices]/cumprod(f)[i-1]  # overwrite replicating exp
     mapafusion[indices]=i
 }
+if (max(hdr)<1) print(paste0("Output data will be ETTR'ed by: +",
+                             round(-log(max(hdr),2),2), "EV"))
 # writeTIFF(hdr^(1/2.2), "hdr.tif", bits.per.sample=16, compression="none")
-writeTIFF(hdr, "hdr.tif", bits.per.sample=16, compression="none")
+writeTIFF(hdr/max(hdr), "hdr.tif", bits.per.sample=16, compression="none")
 
 
 # Fusion map and RAW data files contributions
