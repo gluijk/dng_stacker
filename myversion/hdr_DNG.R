@@ -21,7 +21,7 @@ img=list()
 txt=list()
 for (i in 1:N) {
     img[[i]]=readTIFF(paste0(NAME, i, ".tiff"), native=F, convert=F)
-    for (i in 1:N) txt[[i]]=paste0(NAME, i, ".tiff_", NAME, i+1, ".tiff")
+    txt[[i]]=paste0(NAME, i, ".tiff_", NAME, i+1, ".tiff")
 }
 
 
@@ -64,11 +64,11 @@ for (i in 1:(N-1)) {
               bits.per.sample=8, compression="LZW")
     solape[i]=length(indices[[i]])/length(img[[i]])  # % of data participating
 }
-print("Overlapping (%):")
+print("Data participating in relative exposure calculation (%):")
 print(round(solape*100,1))
 
 
-# HDR COMPOSITE
+# BUILD HDR COMPOSITE
 hdr=img[[1]]  # start with lowest exposure
 mapafusion=img[[i]]*0+1
 for (i in 2:N) {
