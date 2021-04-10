@@ -7,7 +7,7 @@ library(tiff)
 
 
 # PARAMETERS
-N=3  # number of RAW files to merge
+N=5  # number of RAW files to merge
 NAME="raw"  # RAW filenames
 gamma=1  # output gamma
 # NOTE: only gamma=1 guarantees correct colours but could lead to posterization
@@ -78,8 +78,7 @@ for (i in 2:N) {
 }
 if (max(hdr)<1) print(paste0("Output data will be ETTR'ed by: +",
                              round(-log(max(hdr),2),2), "EV"))
-# writeTIFF(hdr^(1/2.2), "hdr.tif", bits.per.sample=16, compression="none")
-writeTIFF(hdr/max(hdr), "hdr.tif", bits.per.sample=16, compression="none")
+writeTIFF((hdr/max(hdr))^(1/gamma), "hdr.tif", bits.per.sample=16, compression="none")
 
 # Fusion map and RAW data files contributions
 writeTIFF((mapafusion-1)/(N-1), "mapafusion.tif",
