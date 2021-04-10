@@ -1,44 +1,88 @@
-# Fusión HDR de imágenes con R
+# Fusión HDR de archivos RAW con R
 # www.overfitting.net
 # https://www.overfitting.net/2018/07/fusion-hdr-de-imagenes-con-r.html
 
+rm(list=ls())
 library(tiff)
 
 
-# LEER FOTOGRAFÍAS
-# Extracción RAW con DCRAW: dcraw -v -d -r 1 1 1 1 -4 -T *.dng
-img1=readTIFF("raw1.tiff", native=F, convert=F)
-img2=readTIFF("raw2.tiff", native=F, convert=F)
+# PARAMETERS
+
+N=3  # number of RAW files to merge
+NAME='raw'  # RAW filenames
+gamma=1  # output gamma
+# Only linear gamma=1 guarantees correct colours but can lead to posterization
 
 
-# CÁLCULO EXPOSICIÓN RELATIVA
-MIN=2^(-8)  # Desde -8EV...
-MAX=0.95  # ...hasta 95%
-indices=which(img1>=MIN & img1<=MAX & img2>=MIN & img2<=MAX)
-exprel=img2[indices]/img1[indices]
-f=median(exprel)  # Factor corrector de exposición
+# READ RAW DATA
 
-# Histograma de exposiciones relativas
-hist(exprel[exprel>=64-20 & exprel<=64+20],
-    main='Relative exposure histogram', xlab='Linear relative exposure',
-    breaks=seq(64-20, 64+20, length.out=800))
-abline(v=2^6, col='gray', lty='dotted')
-abline(v=f, col='red')
+# RAW files must be named: raw1.dng, raw2.dng,... from lower to higher exposure
+# RAW extraction using  DCRAW: dcraw -v -d -r 1 1 1 1 -S 16376 -4 -T *.dng
+img=list()
+for (i in 1:N) img[[i]]=readTIFF(paste0(NAME, i, ".tiff"), native=F, convert=F)
 
-mapacalc=img1*0
-mapacalc[indices]=1  # 1=lo que ha participado en el cálculo
-writeTIFF(mapacalc, "mapacalc.tif", bits.per.sample=8, compression="LZW")
-solape=length(indices)/length(img1)  # % información entró en el cálculo
+# Prebuild labels
+txt=list()
+for (i in 1:N) txt[[i]]=paste0(NAME, i, ".tiff_", NAME, i+1, ".tiff")
+
+# RELATIVE EXPOSURE CALCULATIONS
+MIN=2^(-7)  # from -7EV... (MIN must be >= bracketing EV intervals)
+MAX=0.95  # ...up to 95%
+
+indices=list()
+exprel=list()
+f=array(-1, N-1)
+for (i in 1:(N-1)) {
+    indices[[i]]=which(img[[i]]>=MIN   & img[[i]]<=MAX &
+                       img[[i+1]]>=MIN & img[[i+1]]<=MAX)
+    exprel[[i]]=img[[i+1]][indices[[i]]]/img[[i]][indices[[i]]]
+    f[i]=median(exprel[[i]])  # linear exposure correction factor
+}
+print("Relative exposures (EV):")
+print(round(log(cumprod(f),2),2))
+
+# Relative exposure histograms
+png("relexposure_histogram.png", width=640, height=320*(N-1))
+par(mfrow=c(N-1,1))
+for (i in 1:(N-1)) {
+    hist(exprel[[i]][exprel[[i]]>=f[i]*0.75 & exprel[[i]]<=f[i]*1.25],
+         main=paste0('Relative exposure histogram (', txt[[i]], ')'),
+         xlab='Linear relative exposure',
+         breaks=seq(f[i]*0.75, f[i]*1.25, length.out=800)
+    )
+    abline(v=f[i], col='red')
+    abline(v=round(f[i]), col='gray', lty='dotted')  # closest int EV mark
+}
+dev.off()  
+
+# Relative exposure calculation map
+solape=array(-1, N-1)
+for (i in 1:(N-1)) {
+    mapacalc=img[[i]]*0
+    mapacalc[indices[[i]]]=1  # 1=pixel participated in the calculation
+    writeTIFF(mapacalc, paste0("mapacalc_", txt[[i]], ".tif"),
+              bits.per.sample=8, compression="LZW")
+    solape[i]=length(indices[[i]])/length(img[[i]])  # % of data participating
+}
+print("Overlapping (%):")
+print(round(solape*100,1))
 
 
-# FUSIÓN HDR
-hdr=img1  # Partimos de la foto menos expuesta
-indices=which(img2<=MAX)  # Niveles RGB a obtener de la foto más expuesta
-hdr[indices]=img2[indices]/f  # Los sobreescribimos igualando exposición
-# writeTIFF(hdr^(1/2.2), "hdr.tif", bits.per.sample=16, compression="LZW")
+# HDR COMPOSITE
+hdr=img[[1]]  # start with lowest exposure
+mapafusion=img[[i]]*0+1
+for (i in 2:N) {
+    indices=which(img[[i]]<=MAX)  # non-clipped highest exposure
+    hdr[indices]=img[[i]][indices]/cumprod(f)[i-1]  # overwrite replicating exp
+    mapafusion[indices]=i
+}
+# writeTIFF(hdr^(1/2.2), "hdr.tif", bits.per.sample=16, compression="none")
 writeTIFF(hdr, "hdr.tif", bits.per.sample=16, compression="none")
 
-mapafusion=img1*0
-mapafusion[-indices]=1  # 1=lo obtenido de la foto menos expuesta
-writeTIFF(mapafusion, "mapafusion.tif", bits.per.sample=8, compression="LZW")
-mejora=length(indices)/length(img1)  # % información foto más expuesta
+
+# Fusion map and contributions
+hist(mapafusion)
+writeTIFF((mapafusion-1)/(N-1), "mapafusion.tif",
+          bits.per.sample=8, compression="LZW")
+for (i in 1:N) print(paste0("Contribution of ", NAME, i, ".tiff: ",
+            round(length(which(mapafusion==i))/length(mapafusion)*100,2),"%"))
