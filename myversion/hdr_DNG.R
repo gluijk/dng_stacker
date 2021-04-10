@@ -65,7 +65,7 @@ for (i in 1:(N-1)) {
     solape[i]=length(indices[[i]])/length(img[[i]])  # % of data participating
 }
 print("Data participating in relative exposure calculation (%):")
-print(round(solape*100,1))
+print(round(solape*100,2))
 
 
 # BUILD HDR COMPOSITE
