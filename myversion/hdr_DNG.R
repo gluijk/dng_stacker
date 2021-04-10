@@ -7,7 +7,7 @@ library(tiff)
 
 
 # PARAMETERS
-N=5  # number of RAW files to merge
+N=3  # number of RAW files to merge
 NAME="raw"  # RAW filenames
 gamma=1  # output gamma
 # NOTE: only gamma=1 guarantees correct colours but could lead to posterization
@@ -26,7 +26,7 @@ for (i in 1:N) {
 
 
 # RELATIVE EXPOSURE CALCULATIONS
-MIN=2^(-7)  # from -7EV... (MIN must be >= bracketing EV intervals)
+MIN=2^(-5)  # from -5EV... (NOTE: MIN must be >= bracketing EV intervals)
 MAX=0.95  # ...up to 95%
 
 indices=list()
