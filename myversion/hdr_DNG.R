@@ -7,11 +7,10 @@ library(tiff)
 
 
 # PARAMETERS
-
 N=3  # number of RAW files to merge
 NAME='raw'  # RAW filenames
 gamma=1  # output gamma
-# Only linear gamma=1 guarantees correct colours but can lead to posterization
+# NOTE: only gamma=1 guarantees correct colours but could lead to posterization
 
 
 # READ RAW DATA
@@ -19,11 +18,12 @@ gamma=1  # output gamma
 # RAW files must be named: raw1.dng, raw2.dng,... from lower to higher exposure
 # RAW extraction using  DCRAW: dcraw -v -d -r 1 1 1 1 -S 16376 -4 -T *.dng
 img=list()
-for (i in 1:N) img[[i]]=readTIFF(paste0(NAME, i, ".tiff"), native=F, convert=F)
-
-# Prebuild labels
 txt=list()
-for (i in 1:N) txt[[i]]=paste0(NAME, i, ".tiff_", NAME, i+1, ".tiff")
+for (i in 1:N) {
+    img[[i]]=readTIFF(paste0(NAME, i, ".tiff"), native=F, convert=F)
+    for (i in 1:N) txt[[i]]=paste0(NAME, i, ".tiff_", NAME, i+1, ".tiff")
+}
+
 
 # RELATIVE EXPOSURE CALCULATIONS
 MIN=2^(-7)  # from -7EV... (MIN must be >= bracketing EV intervals)
@@ -80,9 +80,11 @@ for (i in 2:N) {
 writeTIFF(hdr, "hdr.tif", bits.per.sample=16, compression="none")
 
 
-# Fusion map and contributions
-hist(mapafusion)
+# Fusion map and RAW data files contributions
 writeTIFF((mapafusion-1)/(N-1), "mapafusion.tif",
           bits.per.sample=8, compression="LZW")
 for (i in 1:N) print(paste0("Contribution of ", NAME, i, ".tiff: ",
             round(length(which(mapafusion==i))/length(mapafusion)*100,2),"%"))
+hist(mapafusion,
+     main='Contribution of RAW data files',
+     xlab=paste0('Source RAW file (1..', N, ')'))
