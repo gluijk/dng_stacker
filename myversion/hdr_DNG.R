@@ -8,7 +8,7 @@ library(tiff)
 
 # PARAMETERS
 N=3  # number of RAW files to merge
-NAME='raw'  # RAW filenames
+NAME="raw"  # RAW filenames
 gamma=1  # output gamma
 # NOTE: only gamma=1 guarantees correct colours but could lead to posterization
 
