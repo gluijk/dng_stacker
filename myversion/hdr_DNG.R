@@ -9,6 +9,9 @@ library(tiff)
 # PARAMETERS
 N=3  # number of RAW files to merge
 NAME="raw"  # RAW filenames
+# Linear valid exposure range
+MIN=2^(-5)  # from -5EV... (NOTE: MIN must be >= bracketing EV intervals)
+MAX=0.95  # ...up to 95%
 gamma=1  # output gamma
 # NOTE: only gamma=1 guarantees correct colours but could lead to posterization
 
@@ -26,9 +29,8 @@ for (i in 1:N) {
 
 
 # RELATIVE EXPOSURE CALCULATIONS
-MIN=2^(-5)  # from -5EV... (NOTE: MIN must be >= bracketing EV intervals)
-MAX=0.95  # ...up to 95%
 
+# Calculate relative exposure
 indices=list()
 exprel=list()
 f=array(-1, N-1)
@@ -61,7 +63,7 @@ dev.off()
 # Relative exposure calculation map
 solape=array(-1, N-1)
 for (i in 1:(N-1)) {
-    mapacalc=img[[i]]*0
+    mapacalc=img[[i]]*0  # 0=pixel did not participate in the calculation
     mapacalc[indices[[i]]]=1  # 1=pixel participated in the calculation
     writeTIFF(mapacalc, paste0("mapacalc_", txt[[i]], ".tif"),
               bits.per.sample=8, compression="LZW")
@@ -72,7 +74,7 @@ print(round(solape*100,2))
 
 
 # BUILD HDR COMPOSITE
-hdr=img[[1]]  # start with lowest exposure
+hdr=img[[1]]  # start with lowest exposure data
 mapafusion=img[[i]]*0+1
 for (i in 2:N) {
     indices=which(img[[i]]<=MAX)  # non-clipped highest exposure
@@ -86,7 +88,7 @@ writeTIFF((hdr/max(hdr))^(1/gamma), "hdr.tif", bits.per.sample=16,
           compression="none")
 
 # Fusion map and RAW data files contributions
-writeTIFF((mapafusion-1)/(N-1), "mapafusion.tif",
+writeTIFF((mapafusion-1)/(N-1), "mapafusion.tif", # grayscale fusion map
           bits.per.sample=8, compression="LZW")
 for (i in 1:N) print(paste0("Contribution of ", NAME, i, ".tiff: ",
             round(length(which(mapafusion==i))/length(mapafusion)*100,2),"%"))
@@ -94,9 +96,9 @@ for (i in 1:N) print(paste0("Contribution of ", NAME, i, ".tiff: ",
 
 
 # Bit decimation
-# 10, 12, 14 bits versions -> 1024, 4096, 16384 levels
+# 10, 12, 14 bits versions -> 0..1023, 0..4095, 0..16383 levels
 for (bits in seq(10,14,2)) {
-    hdrdec=round(hdr/max(hdr)*(2^bits-1))
+    hdrdec=round(hdr/max(hdr)*(2^bits-1))  # round data into 2^bits int values
     writeTIFF((hdrdec/max(hdrdec))^(1/gamma), paste0("hdr_",bits,"bits.tif"),
               bits.per.sample=16, compression="none")
 }
