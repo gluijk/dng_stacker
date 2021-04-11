@@ -96,7 +96,7 @@ for (i in 1:N) print(paste0("Contribution of ", NAME, i, ".tiff: ",
 # Bit decimation
 # 10, 12, 14 bits versions -> 1024, 4096, 16384 levels
 for (bits in seq(10,14,2)) {
-    hdr2=round(hdr*(2^bits-1))
-    writeTIFF((hdr2/max(hdr2))^(1/gamma), paste0("hdr_",bits,"bits.tif"),
+    hdrdec=round(hdr/max(hdr)*(2^bits-1))
+    writeTIFF((hdrdec/max(hdrdec))^(1/gamma), paste0("hdr_",bits,"bits.tif"),
               bits.per.sample=16, compression="none")
 }
