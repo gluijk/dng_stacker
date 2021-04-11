@@ -38,7 +38,7 @@ for (i in 1:(N-1)) {
     exprel[[i]]=img[[i+1]][indices[[i]]]/img[[i]][indices[[i]]]
     f[i]=median(exprel[[i]])  # linear exposure correction factor
 }
-print("Relative exposures (EV):")
+print("Relative exposures vs lowest exposure shot (EV):")
 print(round(log(cumprod(f),2),2))
 
 # Relative exposure histograms
@@ -79,6 +79,7 @@ for (i in 2:N) {
     hdr[indices]=img[[i]][indices]/cumprod(f)[i-1]  # overwrite+exp correction
     mapafusion[indices]=i
 }
+
 if (max(hdr)<1) print(paste0("Output ETTR'ed by: +",
                              round(-log(max(hdr),2),2), "EV"))
 writeTIFF((hdr/max(hdr))^(1/gamma), "hdr.tif", bits.per.sample=16,
@@ -89,3 +90,13 @@ writeTIFF((mapafusion-1)/(N-1), "mapafusion.tif",
           bits.per.sample=8, compression="LZW")
 for (i in 1:N) print(paste0("Contribution of ", NAME, i, ".tiff: ",
             round(length(which(mapafusion==i))/length(mapafusion)*100,2),"%"))
+
+
+
+# Bit decimation
+# 10, 12, 14 bits versions -> 1024, 4096, 16384 levels
+for (bits in seq(10,14,2)) {
+    hdr2=round(hdr*(2^bits-1))
+    writeTIFF((hdr2/max(hdr2))^(1/gamma), paste0("hdr_",bits,"bits.tif"),
+              bits.per.sample=16, compression="none")
+}
