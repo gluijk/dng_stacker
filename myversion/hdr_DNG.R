@@ -36,7 +36,7 @@ for (i in 1:(N-1)) {
     indices[[i]]=which(img[[i]]>=MIN & img[[i]]<=MAX &
                        img[[i+1]]>=MIN & img[[i+1]]<=MAX)
     exprel[[i]]=img[[i+1]][indices[[i]]]/img[[i]][indices[[i]]]
-    f[i]=median(exprel[[i]])  # Slinear exposure correction factor
+    f[i]=median(exprel[[i]])  # linear exposure correction factor
 }
 print("Relative exposures (EV):")
 print(round(log(cumprod(f),2),2))
