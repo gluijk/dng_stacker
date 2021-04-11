@@ -9,11 +9,15 @@ library(tiff)
 # PARAMETERS
 N=3  # number of RAW files to merge
 NAME="raw"  # RAW filenames
+
 # Linear valid exposure range
-MIN=2^(-5)  # from -5EV... (NOTE: MIN must be >= bracketing EV intervals)
-MAX=0.95  # ...up to 95%
-gamma=1  # output gamma
+# NOTE: log2(MAX/MIN) must be >= bracketing EV intervals
+MIN=2^(-5)  # from -5EV...
+MAX=2^(-1/2)  # ...up to -1/2EV
+
+# Output gamma
 # NOTE: only gamma=1 produces correct colours but could lead to posterization
+gamma=1
 
 
 # READ RAW DATA
