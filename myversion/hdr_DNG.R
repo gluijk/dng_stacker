@@ -13,7 +13,7 @@ NAME="raw"  # RAW filenames
 MIN=2^(-5)  # from -5EV... (NOTE: MIN must be >= bracketing EV intervals)
 MAX=0.95  # ...up to 95%
 gamma=1  # output gamma
-# NOTE: only gamma=1 guarantees correct colours but could lead to posterization
+# NOTE: only gamma=1 produces correct colours but could lead to posterization
 
 
 # READ RAW DATA
