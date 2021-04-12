@@ -92,7 +92,7 @@ writeTIFF((hdr/max(hdr))^(1/gamma), "hdr.tif", bits.per.sample=16,
           compression="none")
 
 # Fusion map and RAW data files contributions
-writeTIFF((mapafusion-1)/(N-1), "mapafusion.tif", # grayscale fusion map
+writeTIFF(1-(mapafusion-1)/(N-1), "mapafusion.tif", # grayscale fusion map
           bits.per.sample=8, compression="LZW")
 for (i in 1:N) print(paste0("Contribution of ", NAME, i, ".tiff: ",
             round(length(which(mapafusion==i))/length(mapafusion)*100,2),"%"))
