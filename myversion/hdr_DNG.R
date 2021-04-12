@@ -12,8 +12,8 @@ NAME="raw"  # RAW filenames
 
 # Linear valid exposure range
 # NOTE: log2(MAX/MIN) must be >= bracketing EV intervals
-MIN=2^(-5)  # from -5EV...
-MAX=2^(-1/2)  # ...up to -1/2EV
+MIN=2^(-5)  # from -5EV... (acceptable noise)
+MAX=2^(-1/2)  # ...up to -1/2EV (avoid non-linearity)
 
 # Output gamma
 # NOTE: only gamma=1 produces correct colours but could lead to posterization
@@ -79,7 +79,7 @@ print(round(solape*100,2))
 
 # BUILD HDR COMPOSITE
 hdr=img[[1]]  # start with lowest exposure data
-mapafusion=img[[i]]*0+1
+mapafusion=hdr*0+1
 for (i in 2:N) {
     indices=which(img[[i]]<=MAX)  # non-clipped highest exposure
     hdr[indices]=img[[i]][indices]/cumprod(f)[i-1]  # overwrite+exp correction
